@@ -1,0 +1,179 @@
+---
+title: "A05_naivebayes"
+author: "Verena Haunschmid"
+date: "25 March 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+## Load library
+
+The naive bayes algorithm is included in the library `e1071`. For visualisation I use `ggplot2`.
+
+```{r library}
+library(e1071)
+library(ggplot2)
+```
+
+```{r knitr, echo=FALSE}
+library(knitr)
+```
+
+## Data
+
+The data was downloaded directly in R (most read methods in R do not only take file paths but also URLs). The second line sets a seed such that everytime the code is executed the test samples selected in the third line are the same. Approximately 10% of the samples are chosen as test samples.
+
+```{r preload}
+load("data.RData")
+```
+
+```{r mushroom, eval=FALSE}
+mush_data<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data", sep=",", header=FALSE)
+set.seed(5678)
+mush_test<-sample(1:nrow(mush_data), nrow(mush_data)*0.1)
+mush_data_melt <- melt(mush_data, id.vars = "edible")
+```
+
+To chose test samples also the following code can be used. It randomly generates `n` numbers between 0 and 1 and each sample with a value below 0.1 is assigned to the test set.
+
+```{r test, eval=FALSE}
+which(runif(nrow(mush_data)) <= 0.1)
+```
+
+Sampling is important because the data might have been collected in a specified order.
+
+Before applying any algorithm it's suggested to look into the data. Use `summary` and `head` to get some info about the data set.
+
+```{r summary}
+summary(mush_data)
+```
+
+```{r head}
+head(mush_data)
+```
+
+All values are categorical which is different from many datasets and makes it interesting for analysis. In the last section you can see plots for each feature.
+
+## Naive bayes on all features
+
+```{r naivebayes}
+training_features <- names(mush_data)[-1]
+target <- "edible"
+
+nb_mush <- naiveBayes(mush_data[-mush_test, training_features], mush_data[-mush_test, target])
+pred_mush_test <- predict(nb_mush, mush_data[mush_test, training_features])
+pred_mush_train <- predict(nb_mush, mush_data[-mush_test, training_features])
+tab1 <- table(pred_mush_test, mush_data[mush_test, target])
+tab2 <- table(pred_mush_train, mush_data[-mush_test, target])
+```
+
+### Confusion matrix test data
+```{r}
+kable(tab1, col.names = c("e - truth", "p - truth"))
+```
+
+#### Accuracy
+
+```{r}
+(tab1[1,1]+tab1[2,2])/sum(tab1)
+```
+
+### Confusion matrix training data
+```{r}
+kable(tab2, col.names = c("e - truth", "p - truth"))
+```
+
+#### Accuracy
+
+```{r}
+(tab2[1,1]+tab2[2,2])/sum(tab2)
+```
+
+
+## Naive bayes on selected features (see below)
+```{r naivebayes2}
+training_features <- c("bruises", "odor", "gill-spacing", "gill-size", "gill-color", "ring-type", "spore-print-color", "population")
+nb_mush <- naiveBayes(mush_data[-mush_test, training_features], mush_data[-mush_test, target])
+pred_mush_test <- predict(nb_mush, mush_data[mush_test, training_features])
+pred_mush_train <- predict(nb_mush, mush_data[-mush_test, training_features])
+tab1 <- table(pred_mush_test, mush_data[mush_test, target])
+tab2 <- table(pred_mush_train, mush_data[-mush_test, target])
+```
+
+### Confusion matrix test data
+```{r}
+kable(table(pred_mush_test, mush_data[mush_test, target]), col.names = c("e - truth", "p - truth"))
+```
+
+#### Accuracy
+
+```{r}
+(tab1[1,1]+tab1[2,2])/sum(tab1)
+```
+
+### Confusion matrix training data
+```{r}
+kable(table(pred_mush_train, mush_data[-mush_test, target]), col.names = c("e - truth", "p - truth"))
+```
+
+#### Accuracy
+
+```{r}
+(tab2[1,1]+tab2[2,2])/sum(tab2)
+```
+
+## Naive bayes on feature odor
+```{r naivebayes3}
+training_features <- c("odor")
+nb_mush <- naiveBayes(data.frame("odor" = mush_data[-mush_test, training_features]), mush_data[-mush_test, target])
+pred_mush_test <- predict(nb_mush, data.frame("odor" = mush_data[mush_test, training_features]))
+pred_mush_train <- predict(nb_mush, data.frame("odor" = mush_data[-mush_test, training_features]))
+tab1 <- table(pred_mush_test, mush_data[mush_test, target])
+tab2 <- table(pred_mush_train, mush_data[-mush_test, target])
+```
+
+### Confusion matrix test data
+```{r}
+kable(table(pred_mush_test, mush_data[mush_test, target]), col.names = c("e - truth", "p - truth"))
+```
+
+#### Accuracy
+
+```{r}
+(tab1[1,1]+tab1[2,2])/sum(tab1)
+```
+
+### Confusion matrix training data
+```{r}
+kable(table(pred_mush_train, mush_data[-mush_test, target]), col.names = c("e - truth", "p - truth"))
+```
+#### Accuracy
+
+```{r}
+(tab2[1,1]+tab2[2,2])/sum(tab2)
+```
+
+## Visual feature selection
+
+Since the dataset has many features I thought it would be useful to look at the features first and maybe it would be possible to preselect some features. So far I don't know of any method like correlation for numerical values that can also compute a correlation value for categorical data so I just chose features manually that I thought would be useful. This sections shows the plots that I created.
+
+```{r features, echo=FALSE}
+for (var in unique(mush_data_melt$variable)) {
+ p <- ggplot(mush_data_melt[mush_data_melt$variable == var,], aes(x = value, fill = edible)) + geom_bar() + scale_fill_brewer(palette="Spectral") + ggtitle(var)
+ print(p)
+}
+```
+
+## Conclusion
+
+It's interesting to see that reducing the number of features increases the accuracy. Using only one feature, **odor**, yields the highest accuracy. I conclude that analysing the data first before performing algorithms is an important step.
+
+It can also be seen that test and training accuracy are very close for all 3 models, from which I conclude that the Naive Bayes algorithm does not overfit on the training data.
+
+## Future work
+
+There are still a few things that could/should be done. Not only accuracy, but also precision/recall should be computed and compared. Furthermore the split into training/test set should be performed several times to average over the model performance (Cross Validation).
