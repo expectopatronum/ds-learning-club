@@ -2,7 +2,7 @@
 title: "A05_naivebayes"
 author: "Verena Haunschmid"
 date: "25 March 2016"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}

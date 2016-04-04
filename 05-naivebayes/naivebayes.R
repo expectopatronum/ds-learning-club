@@ -34,3 +34,6 @@ table(pred_mush_train, mush_data[-mush_test, target])
 
 pred_train <- predict(nb_mush, mush_data[-mush_test, paste0("V",2:23)])
 #calcAUC
+
+library(tableplot)
+tableplot(as.matrix(mush_data), )
