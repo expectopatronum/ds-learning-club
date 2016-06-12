@@ -1,0 +1,112 @@
+---
+title: "kmeans on cat tracking data"
+author: "Verena Haunschmid"
+date: "28 March 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r libs}
+library(leaflet) # for creating maps
+library(RColorBrewer)
+```
+
+## Cat data
+
+```{r data}
+cat_data <- readRDS("06-kmeans/track_cat_clean.RDS")
+head(cat_data)
+```
+
+### Clean data
+
+```{r clean}
+mean_lat <- mean(cat_data$lat)
+mean_lon <- mean(cat_data$lon)
+plot(sqrt((cat_data$lat - mean_lat)^2 + (cat_data$lon - mean_lon)^2), ylab="Distance to mean") # euclidean distance
+eps <- 0.05
+cat_data <- cat_data[sqrt((cat_data$lat - mean_lat)^2 + (cat_data$lon - mean_lon)^2) < eps, ]
+```
+
+### Create map
+
+```{r col}
+pal <- colorFactor(
+  palette = "Spectral",
+  domain = cat_data$cat
+)
+```
+
+```{r map}
+leaflet(cat_data) %>% addTiles() %>% addCircles(lng = ~lon, lat = ~lat, color=~pal(cat), radius = 2) %>% addLegend("topright", pal=pal, values=~cat, title="Cat")
+```
+
+Since there are so many dots, I'll do the clustering per cat (and it will also be interesting to find out locations per cat).
+
+## Clustering
+
+```{r}
+data_teddy <- cat_data[cat_data$cat == "Teddy",]
+data_maya <- cat_data[cat_data$cat == "Maya",]
+data_morli <- cat_data[cat_data$cat == "Morli",]
+data_minu <- cat_data[cat_data$cat == "Minerva",]
+```
+
+I would expect 2-3 locations per cat to be visited more often.
+
+```{r}
+pal <- colorNumeric(
+  palette = "Spectral",
+  domain = 1:2 # that's the values the clusters can take
+)
+pal3 <- colorNumeric(
+  palette = "Spectral",
+  domain = 1:3 # that's the values the clusters can take
+)
+```
+
+
+### Teddy
+
+```{r}
+map_teddy <- leaflet(data_teddy) %>% addTiles() %>% addCircles(lng = ~lon, lat = ~lat, radius = 2)
+map_teddy
+```
+
+```{r}
+km_teddy_2 <- kmeans(data_teddy[,c("lat", "lon")], centers=2)
+km_teddy_3 <- kmeans(data_teddy[,c("lat", "lon")], centers=3)
+```
+
+### Maya
+
+```{r}
+leaflet(data_maya) %>% addTiles() %>% addCircles(lng = ~lon, lat = ~lat, radius = 2)
+```
+
+### Morli
+
+```{r}
+km_morli_2 <- kmeans(data_morli[,c("lat", "lon")], centers=2)
+km_morli_3 <- kmeans(data_morli[,c("lat", "lon")], centers=3)
+```
+
+```{r}
+leaflet(cbind(data_morli, "cluster"=km_morli$cluster)) %>% addTiles() %>% addCircles(lng = ~lon, lat = ~lat, radius = 2, color=~pal(cluster))
+```
+
+### Minerva
+
+```{r}
+km_minu_2 <- kmeans(data_minu[,c("lat", "lon")], centers=2)
+km_minu_3 <- kmeans(data_minu[,c("lat", "lon")], centers=3)
+```
+
+```{r}
+leaflet(data_minu) %>% addTiles() %>% addCircles(lng = ~lon, lat = ~lat, radius = 2)
+```
