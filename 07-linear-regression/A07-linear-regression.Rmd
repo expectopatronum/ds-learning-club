@@ -1,16 +1,19 @@
 ---
 title: "linear-regression"
-author: "Verena Haunschmid"
+author: Verena Haunschmid
 date: "15 April 2016"
-output: pdf_document
+output: html_document
 urlcolor: blue
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(cache = TRUE)
-knitr::opts_chunk$set(tidy = TRUE)
-knitr::opts_chunk$set(tidy.opts=list(width.cutoff=60))
+library(knitr)
+opts_chunk$set(echo = TRUE)
+opts_chunk$set(cache = TRUE)
+opts_chunk$set(tidy = TRUE)
+opts_chunk$set(tidy.opts=list(width.cutoff=60))
+opts_knit$set(upload.fun = function(file) imgur_upload(file, key="d56260245fa1e90"), base.url = NULL) # upload all images to imgur.com
+opts_chunk$set(fig.width=5, fig.height=5, cache=TRUE)
 ```
 
 This is my activity for the [Data Science Learning Club Task 07: Linear Regression](http://becomingadatascientist.com/learningclub/thread-160.html).
