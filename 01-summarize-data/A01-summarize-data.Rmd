@@ -1,0 +1,81 @@
+---
+title: "summarize-data"
+author: "Verena Haunschmid"
+date: "14 April 2016"
+output: pdf_document
+---
+
+This document should give a short overview over the different datasets I use in the [Data Science Learning Club](http://becomingadatascientist.com/learningclub/). I'll try to keep it short and don't want to include more than one or two plots per dataset.
+
+Download link, collected by
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+These are libraries I use for visualisation.
+
+```{r libs}
+library(tabplot) # tableplot (for categorical data)
+library(ggplot2) # general plotting function
+library(leaflet)
+```
+
+`tabplot` can be installed this way:
+
+```{r, eval=FALSE}
+library(devtools)
+install_github("mtennekes/tabplot", subdir="pkg")
+```
+
+`leaflet` can be installed this way:
+```{r}
+library(devtools)
+install_github("rstudio/leaflet")
+```
+
+## Mushroom data
+
+The mushroom dataset is an interesting dataset because it only consists of categorical features (22 to be exact). The target is another categorical value (edible or poisonous).
+
+```{r mush, cache=TRUE}
+mush_data<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data", sep=",", header=FALSE)
+```
+
+The `tableplot` ([suggested on Twitter by hrbrmstr](https://twitter.com/hrbrmstr/status/713705491604451328)) is a very useful tool to visualise this dataset.
+
+```{r tableplot}
+tableplot(mush_data)
+```
+
+## Tractive data
+
+I have written about [this dataset on my blog](http://blog.haunschmid.name/data-collected-with-my-tractive-gps-pet-tracker/) already. It's also available [on my github repo tractive_data](https://github.com/expectopatronum/tractive_data).
+
+```{r}
+track_cat_clean <- read.csv("01-summarize-data/data_sets/track_cat_clean.csv")
+mycats <- unique(track_cat_clean$cat)
+cols <- c("brown", "purple", "blue", "green")
+catMap<-leaflet() %>% addTiles()
+for (i in 1:length(mycats)) {
+  cat<-mycats[i]
+  if (cat != "Unknown") {
+    catMap<-catMap %>% addPolylines(track_cat_clean[track_cat_clean$cat==cat,"lon"], track_cat_clean[track_cat_clean$cat==cat,"lat"], col=cols[i], group=cat, weight = 2, fillOpacity = 0.4) 
+  }
+}
+ 
+catMap %>%
+addLayersControl( 
+  overlayGroups = mycats, 
+  options = layersControlOptions(collapsed = FALSE))
+```
+
+## Geocaching logs
+
+wordcloud
+
+## Tatort
+
+## NFL data
+
+Other datasets I used for the learning club
