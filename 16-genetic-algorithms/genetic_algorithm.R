@@ -8,6 +8,15 @@ compute_fitness <- function(data_store, solution) {
   return(solution_fitness)
 }
 
+compute_fitness_fast <- function(distance_matrix, solution) {
+  fitness_list <- lapply(2:length(solution), function(index) {
+    waypoint1 <- solution[index - 1]
+    waypoint2 <- solution[index]
+    distance_matrix[waypoint1, waypoint2]
+  })
+  return(Reduce("+", fitness_list))
+}
+
 generate_random_agent <- function(all_waypoints) {
   
   new_random_agent <- sample(all_waypoints, length(all_waypoints), replace=FALSE)
@@ -63,7 +72,7 @@ generate_random_population <- function(all_waypoints, pop_size) {
   return(random_population)
 }
 
-run_genetic_algorithm <- function(data_store, all_waypoints, generations=5000, population_size=100) {
+run_genetic_algorithm <- function(distance_matrix, all_waypoints, generations=5000, population_size=100) {
   
   population_subset_size <- floor(population_size / 10)
   generations_10pct <- floor(generations / 10)
@@ -72,10 +81,10 @@ run_genetic_algorithm <- function(data_store, all_waypoints, generations=5000, p
   
   for (generation in 1:generations) {
     population_fitness <- list()
-    for (agent_genome in population) {
-      if (!contains(population_fitness, agent_genome)) {
-        fit <- compute_fitness(data_store, agent_genome)
-        agent_fitness <- list("agent"=agent_genome, "fitness"=unname(fit))
+    for (i in 1:length(population)) {
+      if (!contains(population_fitness, population[[i]])) {
+        fit <- compute_fitness_fast(distance_matrix, population[[i]])
+        agent_fitness <- list("agent"=population[[i]], "fitness"=unname(fit))
         population_fitness[[length(population_fitness)+1]] <- agent_fitness
       }
     }
@@ -103,4 +112,5 @@ run_genetic_algorithm <- function(data_store, all_waypoints, generations=5000, p
     }
     population <-  new_population
   }
+  return (population)
 }
