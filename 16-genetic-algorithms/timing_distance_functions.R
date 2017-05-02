@@ -45,7 +45,7 @@ system.time({
 
 ### microbenchmark
 
-res <- microbenchmark({
+res <- microbenchmark(matrix=({
   population_fitness <- list()
   for (agent_genome in population) {
     if (!contains(population_fitness, agent_genome)) {
@@ -53,8 +53,8 @@ res <- microbenchmark({
       agent_fitness <- list("agent"=agent_genome, "fitness"=unname(fit))
       population_fitness[[length(population_fitness)+1]] <- agent_fitness
     }
-  }},
-  {
+  }}),
+  df=({
     population_fitness <- list()
     for (agent_genome in population) {
       if (!contains(population_fitness, agent_genome)) {
@@ -62,5 +62,7 @@ res <- microbenchmark({
         agent_fitness <- list("agent"=agent_genome, "fitness"=unname(fit))
         population_fitness[[length(population_fitness)+1]] <- agent_fitness
       }
-    }},
+    }}),
   times = 100)
+
+autoplot(res)
